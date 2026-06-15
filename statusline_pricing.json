@@ -1,0 +1,28 @@
+{
+  "providers": {
+    "deepseek": {
+      "balance": {
+        "endpoint": "https://api.deepseek.com/user/balance",
+        "key_env": "DEEPSEEK_API_KEY",
+        "auth_header": "Authorization",
+        "auth_prefix": "Bearer ",
+        "response_path": "balance_infos.0.total_balance",
+        "cache_ttl_s": 600
+      }
+    },
+    "mimo": {
+      "balance": null
+    }
+  },
+  "models": {
+    "deepseek-v4-pro":  {"provider":"deepseek","input":3,   "cache_input":0.025,"output":6,  "currency":"CNY"},
+    "deepseek-v4-flash":{"provider":"deepseek","input":1,   "cache_input":0.02, "output":2,  "currency":"CNY"},
+    "deepseek-chat":    {"provider":"deepseek","input":1,   "cache_input":0.02, "output":2,  "currency":"CNY"},
+    "deepseek-reasoner":{"provider":"deepseek","input":1,   "cache_input":0.02, "output":2,  "currency":"CNY"},
+    "mimo-v2.5-pro":    {"provider":"mimo",    "input":3,   "cache_input":0.025,"output":6,  "currency":"CNY"},
+    "mimo-v2.5":        {"provider":"mimo",    "input":1,   "cache_input":0.02, "output":2,  "currency":"CNY"},
+    "mimo-v2-pro":      {"provider":"mimo",    "input":3,   "cache_input":0.025,"output":6,  "currency":"CNY"},
+    "mimo-v2-omni":     {"provider":"mimo",    "input":1,   "cache_input":0.02, "output":2,  "currency":"CNY"},
+    "mimo-v2-flash":    {"provider":"mimo",    "input":0.7, "cache_input":0.07, "output":2.1,"currency":"CNY"}
+  }
+}
