@@ -151,11 +151,23 @@ def get_balance(provider):
             return None
     except FileNotFoundError:
         pass
-    # 检查 key (仅从环境变量获取，不回退 ~/.claude.json 防泄漏)
+    # 检查 key (优先环境变量，回退 ~/.claude.json)
     key_env = bal.get("key_env", "")
     if not key_env:
         return None
     key = os.environ.get(key_env, "")
+    if not key:
+        try:
+            with open(os.path.expanduser("~/.claude.json")) as f:
+                key = json.load(f).get("env", {}).get(key_env, "")
+        except Exception:
+            pass
+        if not key:
+            try:
+                with open(os.path.expanduser("~/.claude.json")) as f:
+                    key = json.load(f).get("env", {}).get("ANTHROPIC_AUTH_TOKEN", "")
+            except Exception:
+                pass
     if not key:
         return None
     # 写锁 + 启动后台拉取
@@ -172,6 +184,7 @@ def get_balance(provider):
             [sys.executable, "-c", _FETCH_BALANCE,
              endpoint, cache_file, lock_file, key_env,
              auth_header, auth_prefix, response_path],
+            env={**os.environ, key_env: key},
             start_new_session=True, stdin=subprocess.DEVNULL,
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
         )
