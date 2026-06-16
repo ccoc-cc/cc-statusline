@@ -213,7 +213,10 @@ if effort in ("xhigh", "max"):                 md += f" ⚡{effort}"
 elif effort and effort != "medium":           md += f"({effort})"
 dir_link = f"\033]8;;file://{dir_}\a{dir_}\033]8;;\a"
 
-line1 = f"{D}{now}{E} | {C}{md}{E} | {dir_link} | {repo_s}{git_s}"
+repo_git = repo_s + git_s
+line1 = f"{D}{now}{E} | {C}{md}{E} | {dir_link}"
+if repo_git:
+    line1 += f" |{repo_git}"
 if vim_mode:
     line1 += f" | {B}{vim_mode}{E}"
 if lines_add or lines_rm:
