@@ -77,6 +77,31 @@ def accum_out():
         pass
     return acc
 
+# --- 累积费用跟踪 (与 accum_out 同指纹, 防 compact 后费用回退) ---
+def accum_cost(price):
+    if not price:
+        return 0.0
+    state_file = f"/tmp/cc-statusline-cost-{sess_id}"
+    acc, last_fp = 0.0, ""
+    try:
+        with open(state_file) as f:
+            d = json.loads(f.read())
+            acc, last_fp = d["cost"], d.get("fp", "")
+    except Exception:
+        pass
+    cur_fp = f"{fresh_in}|{cache_cre}|{cache_rd}|{usage_out}" if usage else ""
+    if usage and cur_fp != last_fp:
+        acc += ((fresh_in + cache_cre) * price["input"]
+                + cache_rd * price.get("cache_input", price["input"])
+                + usage_out * price["output"]) / 1e6
+        last_fp = cur_fp
+    try:
+        with open(state_file, "w") as f:
+            json.dump({"cost": acc, "fp": last_fp}, f)
+    except Exception:
+        pass
+    return acc
+
 # --- Git 缓存 (5s, 按 session_id 隔离) ---
 cache_file = f"/tmp/cc-statusline-git-{sess_id}"
 branch = ""
@@ -249,16 +274,8 @@ if not narrow:
     code = "CN"
     provider = ""
     if price:
-        # 缓存感知计费: 缓存写入按全价, 缓存读取按低价
-        eff_out = usage_out if usage else out_tok
-        p_in = price.get("input", 0)
-        p_out = price.get("output", 0)
-        if usage:
-            cost_val = ((fresh_in + cache_cre) * p_in
-                        + cache_rd * price.get("cache_input", p_in)
-                        + eff_out * p_out) / 1e6
-        else:
-            cost_val = (in_tok * p_in + eff_out * p_out) / 1e6
+        # 缓存感知计费 (会话累积, 不怕 compact)
+        cost_val = accum_cost(price)
         cost_cur = price.get("currency", "CNY")
         sym = CUR_SYM.get(cost_cur, cost_cur)
         code = CCODE.get(cost_cur, cost_cur)
